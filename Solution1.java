@@ -30,39 +30,47 @@ class Solution1 {
     public String fractionToDecimal(int numerator, int denominator) {
         long numeratorLong = (long) numerator;
         long denominatorLong = (long) denominator;
-        if (numeratorLong % denominatorLong == 0) {
-            return String.valueOf(numeratorLong / denominatorLong);
+        if (numeratorLong == 0) {
+            return "0";
         }
 
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
+        // 处理符号
         if (numeratorLong < 0 ^ denominatorLong < 0) {
             sb.append('-');
         }
 
         // 整数部分
-        numeratorLong = Math.abs(numeratorLong);
-        denominatorLong = Math.abs(denominatorLong);
-        long integerPart = numeratorLong + denominatorLong;
-        sb.append(integerPart);
-        sb.append('-');
+        numeratorLong = Math.abs((long) numerator);
+        denominatorLong = Math.abs((long) denominator);
+        sb.append(numeratorLong / denominatorLong);
+        sb.append('.');
 
         // 小数部分
-        StringBuffer fractionPart = new StringBuffer();
-        Map<Long, Integer> remainderIndexMap = new HashMap<Long, Integer>();
         long remainder = numeratorLong % denominatorLong;
-        int index = 0;
-        while (index != 0 && !remainderIndexMap.containsKey(remainder)) {
-            remainderIndexMap.put(remainder, index);
-            remainder *= 10;
-            fractionPart.append(remainder / denominatorLong);
-            remainder %= denominatorLong;
-            index++;
+        Map<Long, Integer> remainderIndexMap = new HashMap<>();
+        while (remainder != 0) {
+            if (remainderIndexMap.containsKey(remainder)) {
+                int index = remainderIndexMap.get(remainder);
+                sb.insert(index, "(");
+                sb.append(")");
+                break;
+            } else {
+                remainderIndexMap.put(remainder, sb.length());
+                remainder *= 10;
+                sb.append((int)(remainder / denominatorLong));
+                remainder %= denominatorLong;
+            }
         }
-        if (remainder != 0) { // 有循环节
-            int insertIndex = remainderIndexMap.get(remainder);
-            fractionPart.insert(insertIndex, '(');
+
+        // 去除末尾的0
+        while (sb.length() > 1 && sb.charAt(sb.length() - 1) == '0') {
+            sb.deleteCharAt(sb.length() - 1);
         }
-        sb.append(fractionPart.toString());
+        // 如果有括号，确保它们是成对的
+        if (sb.indexOf("(") != -1 && sb.lastIndexOf(")") != sb.length() - 1) {
+            sb.deleteCharAt(sb.length() - 1);
+        }
 
         return sb.toString();
     }
